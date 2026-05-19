@@ -23,5 +23,14 @@ if st.button("Generate Random Walk"):
         # Display the interactive chart
         st.line_chart(df)
         
-        st.success("Simulation complete! 🎉")
-        st.balloons()
+        st.success("✅ Simulation complete!")
+        st.info("📊 Your random walk is ready for analysis")
+        
+        # Show some metrics
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            st.metric("Paths", num_paths)
+        with col2:
+            st.metric("Steps", num_steps)
+        with col3:
+            st.metric("Status", "Ready")

@@ -9,9 +9,10 @@ random_walk_page = st.Page("streamlit_app.py", title="Random Walk Simulator", ic
 chatbot_page = st.Page("chatbot_app.py", title="SnarkyBot", icon="🤖")
 features_page = st.Page("cool_features.py", title="Cool Features Showcase", icon="🚀")
 pdf_page = st.Page("pdf_viewer.py", title="PDF Viewer", icon="📄")
+iclaw_page = st.Page("iClaw.py", title="iClaw Interactive", icon="🦾")
 
 # Set up the navigation menu
-pg = st.navigation([random_walk_page, chatbot_page, features_page, pdf_page])
+pg = st.navigation([random_walk_page, chatbot_page, features_page, iclaw_page, pdf_page])
 
 # Run the selected page
 pg.run()
