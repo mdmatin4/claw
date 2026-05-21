@@ -7,6 +7,9 @@ import streamlit as st
 from sentence_transformers import SentenceTransformer
 import chromadb
 from transformers import AutoModelForSeq2SeqLM, AutoTokenizer
+import os
+
+GEMMA_MODEL = os.getenv("GEMMA_MODEL", "gemma-3-2b")
 
 st.set_page_config(page_title="iClaw Interactive", layout="wide")
 
@@ -61,9 +64,16 @@ def get_collection(client, name: str, recreate: bool = False):
 
 
 @st.cache_resource
-def load_llm(model_name: str = "google/flan-t5-small"):
-    tokenizer = AutoTokenizer.from_pretrained(model_name)
-    model = AutoModelForSeq2SeqLM.from_pretrained(model_name)
+def load_llm(model_name: str = GEMMA_MODEL):
+    try:
+        tokenizer = AutoTokenizer.from_pretrained(model_name)
+        model = AutoModelForSeq2SeqLM.from_pretrained(model_name)
+    except Exception as exc:
+        raise RuntimeError(
+            f"Failed to load Gemma 3 2B model '{model_name}'. "
+            "Make sure the model is available locally or set GEMMA_MODEL to a valid Hugging Face repo ID, "
+            "and authenticate with `huggingface-cli login` if necessary."
+        ) from exc
     return model, tokenizer
 
 
@@ -194,12 +204,8 @@ def main():
 
     query = st.text_input("Ask a question", value="What is Dr. Husain's role?")
     n_results = st.slider("Number of results", min_value=1, max_value=5, value=3)
-    use_llm = st.checkbox("Use lightweight LLM to summarize results", value=True)
-    llm_model_name = st.selectbox(
-        "LLM model",
-        ["google/flan-t5-small", "google/flan-t5-base"],
-        index=0,
-    )
+    llm_model_name = GEMMA_MODEL
+    st.text_input("LLM model (fixed)", value=llm_model_name, disabled=True)
 
     if st.button("Search") and query:
         try:
@@ -215,10 +221,9 @@ def main():
 
                 context = "\n\n".join([hit for _, hit, _ in result_items])
                 llm_answer = None
-                if use_llm:
-                    with st.spinner("Generating answer with lightweight LLM..."):
-                        llm_model, llm_tokenizer = load_llm(llm_model_name)
-                        llm_answer = generate_answer(llm_model, llm_tokenizer, context, query)
+                with st.spinner("Generating answer with Gemma 3 2B..."):
+                    llm_model, llm_tokenizer = load_llm(llm_model_name)
+                    llm_answer = generate_answer(llm_model, llm_tokenizer, context, query)
 
                 if llm_answer:
                     st.subheader("LLM Answer")
