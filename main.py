@@ -10,9 +10,10 @@ chatbot_page = st.Page("chatbot_app.py", title="SnarkyBot", icon="🤖")
 features_page = st.Page("cool_features.py", title="Cool Features Showcase", icon="🚀")
 pdf_page = st.Page("pdf_viewer.py", title="PDF Viewer", icon="📄")
 iclaw_page = st.Page("iClaw.py", title="iClaw Interactive", icon="🦾")
+rag_concepts_page = st.Page("rag_concepts.py", title="RAG Concepts Visualizer", icon="🧠")
 
 # Set up the navigation menu
-pg = st.navigation([random_walk_page, chatbot_page, features_page, iclaw_page, pdf_page])
+pg = st.navigation([random_walk_page, chatbot_page, features_page, iclaw_page, pdf_page, rag_concepts_page])
 
 # Run the selected page
 pg.run()
