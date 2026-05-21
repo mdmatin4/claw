@@ -6,12 +6,15 @@ from pathlib import Path
 import streamlit as st
 from sentence_transformers import SentenceTransformer
 import chromadb
-from transformers import AutoModelForSeq2SeqLM, AutoTokenizer
+from transformers import AutoModelForCausalLM, AutoTokenizer
 import os
 
-GEMMA_MODEL = os.getenv("GEMMA_MODEL", "gemma-3-2b")
+GEMMA_MODEL = os.getenv("GEMMA_MODEL", "Qwen/Qwen2.5-0.5B-Instruct")
 
-st.set_page_config(page_title="iClaw Interactive", layout="wide")
+try:
+    st.set_page_config(page_title="iClaw Interactive", layout="wide")
+except st.errors.StreamlitAPIException:
+    pass
 
 SAMPLE_TEXT = """Dr. Mohammad Husain is a Professor and the Inaugural Director of the PolySec Cyber Lab, a Center for Cyber Security and Forensics Education, Research, and Outreach in the Department of Computer Science at the California State Polytechnic University, Pomona (Cal Poly Pomona), CA. He has over five years’ experience in leadership, development, and administration of Computer Science and Cyber Security academic and co-curricular programs at a comprehensive university. He has significant leadership experience in extramural funding, graduate program, financial and strategic planning, assessment and accreditation, faculty governance, and building academic vision in diverse academic environments. His academic vision and leadership skills have resulted in state and national-level programs and diverse academic settings across multiple institutions.
 Dr. Husain’s administrative leadership includes the Program Directorship of the Cal-Bridge Computer Science (CS) program, a California State University (CSU)-University of California (UC) Ph.D. pathway program for Computer Science and Engineering students from underrepresented minority communities. Dr. Husain leads the steering committee comprised of six CSUs, six UCs, and one community college. The program was launched in Fall 2020 and recruited 18 CSU students successfully. He is also the founding organizing chair of the SFSCon, a national cybersecurity training workshop for the CyberCorps Scholarship for Service (SFS) students. In Fall 2021, around 141 CyberCorps SFS students (BS/MS/Ph.D.) from 42 different US universities participated in this 2-day training.
@@ -67,10 +70,10 @@ def get_collection(client, name: str, recreate: bool = False):
 def load_llm(model_name: str = GEMMA_MODEL):
     try:
         tokenizer = AutoTokenizer.from_pretrained(model_name)
-        model = AutoModelForSeq2SeqLM.from_pretrained(model_name)
+        model = AutoModelForCausalLM.from_pretrained(model_name)
     except Exception as exc:
         raise RuntimeError(
-            f"Failed to load Gemma 3 2B model '{model_name}'. "
+            f"Failed to load Gemma model '{model_name}'. "
             "Make sure the model is available locally or set GEMMA_MODEL to a valid Hugging Face repo ID, "
             "and authenticate with `huggingface-cli login` if necessary."
         ) from exc
@@ -90,7 +93,8 @@ def generate_answer(model, tokenizer, context: str, question: str, max_length: i
         max_new_tokens=max_length,
         do_sample=False,
     )
-    return tokenizer.decode(outputs[0], skip_special_tokens=True).strip()
+    generated_tokens = outputs[0][inputs.input_ids.shape[-1]:]
+    return tokenizer.decode(generated_tokens, skip_special_tokens=True).strip()
 
 
 def load_text_files(paths):
@@ -215,9 +219,9 @@ def main():
                 metas = results.get("metadatas", [[]])[0]
                 scores = results.get("distances", [[]])[0] if "distances" in results else []
 
-                # Combine and sort by score descending so the highest score appears first
+                # Combine and sort by distance ascending so the closest (lowest) score appears first
                 result_items = list(zip(scores, hits, metas))
-                result_items.sort(key=lambda x: x[0], reverse=True)
+                result_items.sort(key=lambda x: x[0], reverse=False)
 
                 context = "\n\n".join([hit for _, hit, _ in result_items])
                 llm_answer = None

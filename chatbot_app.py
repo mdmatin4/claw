@@ -4,7 +4,7 @@ import time
 
 from transformers import AutoTokenizer, AutoModelForCausalLM
 
-GEMMA_MODEL = os.getenv("GEMMA_MODEL", "google/gemma-2-2b-it")
+GEMMA_MODEL = os.getenv("GEMMA_MODEL", "Qwen/Qwen2.5-0.5B-Instruct")
 
 @st.cache_resource
 def load_llm(model_name: str = GEMMA_MODEL):
@@ -41,7 +41,10 @@ def generate_answer(model, tokenizer, context: str, question: str, max_length: i
     
     return tokenizer.decode(generated_tokens, skip_special_tokens=True).strip()
 
-st.set_page_config(page_title="SnarkyBot", page_icon="🤖")
+try:
+    st.set_page_config(page_title="SnarkyBot", page_icon="🤖")
+except st.errors.StreamlitAPIException:
+    pass
 
 st.title("🤖 SnarkyBot Interface")
 st.markdown("A simple conversational interface built with Streamlit.")

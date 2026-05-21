@@ -2,7 +2,10 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 
-st.set_page_config(page_title="Random Walk Simulator", page_icon="📈")
+try:
+    st.set_page_config(page_title="Random Walk Simulator", page_icon="📈")
+except st.errors.StreamlitAPIException:
+    pass
 
 st.title("Interactive Random Walk Simulator 🚶‍♂️")
 st.markdown("Welcome to this fun little interactive Streamlit app! Adjust the sliders on the left to see what happens.")
