@@ -5,3 +5,4 @@ chromadb
 torch
 pandas
 numpy
+protobuf<4.0.0
